@@ -25,14 +25,14 @@ public static class WebApiExtensions
         await httpContext.HandleAsync(request);
     }
 
-    private static async Task<TRequest> ModelBindAsync<TRequest>(this HttpContext httpContext)
+    private static async Task<TRequest?> ModelBindAsync<TRequest>(this HttpContext httpContext)
         where TRequest: IRequest, new()
     {
         var requestType = typeof(TRequest);
         var interfaces = requestType.GetInterfaces();
 
-        TRequest result = interfaces.Any(x => x.Equals(typeof(IFromJsonBody)))
-            ? (TRequest)await httpContext.Request.ReadFromJsonAsync(requestType)
+        TRequest? result = interfaces.Any(x => x.Equals(typeof(IFromJsonBody)))
+            ? (TRequest?)await httpContext.Request.ReadFromJsonAsync(requestType)
             : new TRequest();
 
         if (result is IFromRoute fromRoute)
@@ -53,11 +53,11 @@ public static class WebApiExtensions
         return result;
     }
 
-    private class ValidationResult
+    private sealed class ValidationResult
     {
         public bool IsSuccess { get; set; }
         
-        public Dictionary<string, string> ValidationMessages { get; set; }
+        public Dictionary<string, string>? ValidationMessages { get; set; }
     }
 
     private static async Task<ValidationResult> ValidateAsync<TRequest>(this HttpContext httpContext, TRequest request)
@@ -87,13 +87,13 @@ public static class WebApiExtensions
     }
 
     private static async Task HandleAsync<TRequest>(this HttpContext httpContext, TRequest request)
-        where TRequest : IRequest
+        where TRequest : IRequest?
     {
         var returnType = typeof(TRequest).GetInterfaces()[0].GetGenericArguments()[0];
         var handlerType = typeof(Handler<,>).MakeGenericType(typeof(TRequest), returnType);
         var handler = httpContext.RequestServices.GetService(handlerType) as IHandler<TRequest>;
 
-        var result = await handler.RunAsync(request);
+        var result = await handler!.RunAsync(request);
         await httpContext.Response.WriteAsJsonAsync(result);
     }
 }
