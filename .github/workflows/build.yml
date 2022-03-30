@@ -44,5 +44,5 @@ jobs:
         run: |
           cd src
           ..\.sonar\scanner\dotnet-sonarscanner begin /k:"8ait_minimal-api" /o:"8ait" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet build MinimalApiExample.sln
+          dotnet build MinimapApiExample.sln
           ..\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
